@@ -1,0 +1,7 @@
+# Print first 10 natural numbers using while loop
+num = 10
+i = 1
+
+while i <= num:
+    print(i)
+    i = i + 1
