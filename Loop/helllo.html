@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Practice Exam</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d1a;
+  --card: #13132a;
+  --card2: #1a1a35;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0f0ff;
+  --muted: #8888aa;
+  --green: #00ffaa;
+  --red: #ff4d6d;
+  --blue: #4da6ff;
+  --purple: #b06cff;
+  --orange: #ff9d4d;
+  --yellow: #ffe066;
+  --pink: #ff6bb3;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 20%, rgba(77,166,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(176,108,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,255,170,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.title-area { display: flex; align-items: center; gap: 10px; }
+
+.title-icon {
+  font-size: 26px;
+  animation: spin 4s linear infinite;
+  display: inline-block;
+}
+@keyframes spin {
+  0%,100%{transform:rotate(-10deg);}
+  50%{transform:rotate(10deg);}
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.stat-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  transition: all 0.3s;
+}
+.stat-badge.score-badge { color: var(--green); border-color: rgba(0,255,170,0.25); }
+
+/* PROGRESS BAR */
+.progress-wrap {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+.progress-track {
+  height: 6px;
+  background: var(--card2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--pink));
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: -2px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 8px var(--pink);
+  transition: opacity 0.3s;
+}
+
+/* TOPIC DOTS */
+.topic-dots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.dot.answered { background: var(--green); border-color: var(--green); box-shadow: 0 0 4px var(--green); }
+.dot.wrong-dot { background: var(--red); border-color: var(--red); box-shadow: 0 0 4px var(--red); }
+.dot.current { transform: scale(1.4); border-color: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+
+/* QUESTION CARD */
+.q-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.q-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--topic-color, linear-gradient(90deg,var(--blue),var(--purple)));
+  border-radius: 20px 20px 0 0;
+}
+
+.q-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.topic-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+}
+
+.q-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.q-text {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  white-space: pre-wrap;
+}
+
+pre {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: #0a0a18;
+  border: 1px solid rgba(77,166,255,0.2);
+  border-left: 3px solid var(--blue);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 10px 0 14px;
+  overflow-x: auto;
+  color: #c8d8ff;
+  white-space: pre;
+}
+
+/* KEYWORD HIGHLIGHTING */
+.kw-def    { color: #b06cff; }
+.kw-for    { color: #4da6ff; }
+.kw-if     { color: #4da6ff; }
+.kw-print  { color: #00ffaa; }
+.kw-str    { color: #ffe066; }
+.kw-num    { color: #ff9d4d; }
+.kw-bool   { color: #ff6bb3; }
+
+/* OPTIONS */
+.options { display: flex; flex-direction: column; gap: 8px; }
+
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+}
+.opt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+.opt:hover:not(.locked)::before {
+  background: rgba(255,255,255,0.03);
+}
+.opt:hover:not(.locked) {
+  border-color: rgba(255,255,255,0.15);
+  transform: translateX(4px);
+}
+
+.opt-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  margin-top: 1px;
+}
+
+.opt.selected .opt-label { background: rgba(255,255,255,0.15); }
+
+.opt.correct {
+  border-color: var(--green);
+  background: rgba(0,255,170,0.07);
+  animation: correctPop 0.4s ease;
+}
+.opt.correct .opt-label { background: var(--green); color: #0d0d1a; }
+@keyframes correctPop {
+  0%{transform:scale(1)}
+  40%{transform:scale(1.02)}
+  100%{transform:scale(1)}
+}
+
+.opt.wrong {
+  border-color: var(--red);
+  background: rgba(255,77,109,0.07);
+  animation: shake 0.4s ease;
+}
+.opt.wrong .opt-label { background: var(--red); color: #fff; }
+@keyframes shake {
+  0%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+  100%{transform:translateX(0)}
+}
+
+.opt.locked { cursor: default; }
+
+/* EXPLANATION */
+.explanation {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: rgba(0,255,170,0.06);
+  border: 1px solid rgba(0,255,170,0.2);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #aaffdd;
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: fadeUp 0.3s ease;
+}
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(6px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.exp-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* STREAK BADGE */
+.streak-badge {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  font-size: 40px;
+  background: linear-gradient(135deg, #ffe066, #ff9d4d);
+  color: #0d0d1a;
+  font-weight: 800;
+  padding: 16px 28px;
+  border-radius: 16px;
+  z-index: 999;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  font-family: var(--sans);
+  white-space: nowrap;
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); transform: translateY(-1px); }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(77,166,255,0.25);
+}
+.btn.primary:hover { box-shadow: 0 6px 24px rgba(77,166,255,0.4); transform: translateY(-2px); }
+
+.btn.success {
+  background: linear-gradient(135deg, var(--green), #00cc88);
+  border: none;
+  color: #0d0d1a;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(0,255,170,0.3);
+}
+
+.nav-info {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* RESULT SCREEN */
+.result-screen {
+  animation: slideIn 0.4s ease;
+}
+
+.result-hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  position: relative;
+}
+
+.result-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  margin: 0 auto 1.25rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-pct {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  font-family: var(--mono);
+}
+
+.ring-svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.ring-bg { fill: none; stroke: var(--card2); stroke-width: 8; }
+.ring-fg {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.result-label {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.result-msg {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.result-card:hover { transform: translateY(-3px); }
+
+.result-num {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: var(--mono);
+}
+.result-lbl {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* TOPIC COLORS */
+.topic-Basics     { color: var(--blue);   border-color: var(--blue);   }
+.topic-Variables  { color: var(--purple); border-color: var(--purple); }
+.topic-Datatypes  { color: var(--orange); border-color: var(--orange); }
+.topic-Operators  { color: var(--yellow); border-color: var(--yellow); }
+.topic-TypeCasting{ color: var(--pink);   border-color: var(--pink);   }
+.topic-Input      { color: var(--green);  border-color: var(--green);  }
+.topic-Lists      { color: #66d9e8;       border-color: #66d9e8;       }
+.topic-Tuples     { color: #e599f7;       border-color: #e599f7;       }
+.topic-BubbleSort { color: var(--orange); border-color: var(--orange); }
+.topic-IfConditional{color:var(--blue);   border-color: var(--blue);   }
+.topic-ForLoop    { color: var(--green);  border-color: var(--green);  }
+.topic-WhileLoop  { color: var(--purple); border-color: var(--purple); }
+.topic-Dictionary { color: var(--yellow); border-color: var(--yellow); }
+.topic-Sets       { color: var(--pink);   border-color: var(--pink);   }
+.topic-2DLists    { color: #66d9e8;       border-color: #66d9e8;       }
+
+.confetti-piece {
+  position: fixed;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="streak-badge" id="streakBadge"></div>
+
+<script>
+const questions = [
+{t:"Basics",q:"Which of the following is a valid Python comment?",o:["// This is a comment","/* comment */","# This is a comment","<!-- comment -->"],a:2,e:"Python uses # for single-line comments. // is used in Java/JavaScript, /* */ in C-style languages."},
+{t:"Basics",q:"What is the output of: print(type(42))?",o:["<class 'int'>","<class 'num'>","integer","int"],a:0,e:"type() returns the type object, displayed as <class 'int'>."},
+{t:"Basics",q:"Which keyword is used to define a function in Python?",o:["function","def","fun","define"],a:1,e:"Python uses 'def' to define functions. Java uses return-type declarations instead."},
+{t:"Basics",q:"What does the following print?\n\nprint(10 // 3)",o:["3.33","3","4","3.0"],a:1,e:"// is floor division — it returns the integer quotient. 10÷3 = 3 remainder 1, so result is 3."},
+{t:"Variables",q:"Which of these is NOT a valid variable name in Python?",o:["my_var","_private","2fast","fast2"],a:2,e:"Variable names cannot start with a digit. They must begin with a letter or underscore."},
+{t:"Variables",q:"What is the value of x after: x = 5; x += 3?",o:["5","3","8","53"],a:2,e:"+= adds to the existing value: 5+3=8. This is the compound assignment operator."},
+{t:"Variables",q:"What does this print?\n\na = b = c = 10\nprint(a, b, c)",o:["Error","10 10 10","10","a b c"],a:1,e:"Python allows chained assignment. All three variables get the value 10."},
+{t:"Variables",q:"After this code runs, what is y?\n\nx = 10\ny = x\nx = 20\nprint(y)",o:["20","10","None","Error"],a:1,e:"Integers are immutable. y was assigned x's value (10) before x changed to 20."},
+{t:"Datatypes",q:"What is the data type of: 3.14?",o:["int","double","float","decimal"],a:2,e:"Decimal numbers in Python are float by default. Python has no 'double' type."},
+{t:"Datatypes",q:"What is the output of: print(type(True))?",o:["<class 'bool'>","<class 'int'>","<class 'str'>","True"],a:0,e:"True and False are of type bool in Python. Interestingly, bool is a subclass of int!"},
+{t:"Datatypes",q:"Which of these creates a string?",o:["x = 42","x = 3.14","x = 'hello'","x = True"],a:2,e:"String literals are enclosed in single or double quotes."},
+{t:"Datatypes",q:"What is the result of: print(bool(0))?",o:["True","False","0","None"],a:1,e:"0, empty string, empty list, None all evaluate to False in Python (they are 'falsy')."},
+{t:"Datatypes",q:"What does this output?\n\nx = \"Python\"\nprint(len(x))",o:["5","6","7","Error"],a:1,e:"len() counts characters. 'Python' has 6 characters: P-y-t-h-o-n."},
+{t:"Operators",q:"What is the result of: 2 ** 3?",o:["6","8","9","5"],a:1,e:"** is the exponentiation operator. 2**3 = 2×2×2 = 8."},
+{t:"Operators",q:"What does % do in Python?",o:["Division","Exponentiation","Modulus (remainder)","Percentage"],a:2,e:"% returns the remainder of division. 10%3 = 1 because 10 = 3×3 + 1."},
+{t:"Operators",q:"What is the output?\n\nprint(5 != 5)",o:["True","False","5","Error"],a:1,e:"!= checks inequality. 5 is equal to 5, so this is False."},
+{t:"Operators",q:"What does this evaluate to?\n\nprint(True and False or True)",o:["True","False","None","Error"],a:0,e:"'and' has higher precedence. (True and False) = False. False or True = True."},
+{t:"Operators",q:"What is the output?\n\nprint(15 % 4)",o:["3","4","3.75","1"],a:0,e:"15 divided by 4 is 3 with remainder 3. So 15%4 = 3."},
+{t:"TypeCasting",q:"What is the output of: int('42')?",o:["Error","'42'","42","42.0"],a:2,e:"int() converts a string to integer if it contains a valid integer value."},
+{t:"TypeCasting",q:"What does this output?\n\nprint(float(7))",o:["7","7.0","'7.0'","Error"],a:1,e:"float() converts integer 7 to floating point 7.0."},
+{t:"TypeCasting",q:"What happens when you run: int('3.14')?",o:["Returns 3","Returns 3.14","Raises ValueError","Returns '3'"],a:2,e:"int() cannot directly convert a string with a decimal point. Use int(float('3.14')) instead."},
+{t:"TypeCasting",q:"What is the output?\n\nx = str(100)\nprint(type(x))",o:["<class 'int'>","<class 'str'>","100","<class 'num'>"],a:1,e:"str() converts 100 to the string '100'. type() returns <class 'str'>."},
+{t:"Input",q:"What does input() always return?",o:["int","float","str","depends on what user types"],a:2,e:"input() always returns a string, regardless of what the user types!"},
+{t:"Input",q:"How do you read an integer from the user?",o:["input(int)","int(input())","read_int()","scan()"],a:1,e:"You must wrap input() with int() to convert the string to integer."},
+{t:"Input",q:"What is printed?\n\nname = input('Enter name: ')\nprint('Hello', name)\n\n(user types: Alice)",o:["Hello","Hello Alice","Alice Hello","Enter name: Alice"],a:1,e:"print() with multiple args separates them with a space by default."},
+{t:"Lists",q:"What is the output?\n\nmy_list = [1, 2, 3]\nprint(my_list[-1])",o:["1","2","3","Error"],a:2,e:"Negative indexing: -1 accesses the last element. -2 would be 2, etc."},
+{t:"Lists",q:"Which method adds an element to the end of a list?",o:[".add()",".insert()",".append()",".push()"],a:2,e:"list.append(value) adds an element to the end. .add() is for sets."},
+{t:"Lists",q:"What is the output?\n\na = [1, 2, 3, 4, 5]\nprint(a[1:4])",o:["[1, 2, 3]","[2, 3, 4]","[2, 3, 4, 5]","[1, 2, 3, 4]"],a:1,e:"Slicing a[1:4] returns elements at index 1, 2, 3 (stops BEFORE index 4)."},
+{t:"Lists",q:"What does this code output?\n\nx = [10, 20, 30]\nx.remove(20)\nprint(x)",o:["[10, 30]","[10, 20]","[20, 30]","Error"],a:0,e:"remove() finds and removes the first occurrence of the given value."},
+{t:"Lists",q:"What is the length of: [1, [2, 3], 4]?",o:["4","3","2","5"],a:1,e:"len() counts top-level elements only. [2,3] counts as one element."},
+{t:"Tuples",q:"Which of these creates a tuple with one element?",o:["(1)","(1,)","tuple(1)","[1]"],a:1,e:"A trailing comma is required for a single-element tuple. (1) is just an integer in parentheses."},
+{t:"Tuples",q:"What happens when you run?\n\nt = (1, 2, 3)\nt[0] = 10",o:["t becomes (10,2,3)","TypeError","SyntaxError","Nothing"],a:1,e:"Tuples are immutable — you cannot change their elements after creation. Like a frozen list!"},
+{t:"Tuples",q:"What is the output?\n\nt = (5, 10, 15)\nprint(t[1])",o:["5","10","15","Error"],a:1,e:"Indexing starts at 0. t[1] is the second element: 10."},
+{t:"BubbleSort",q:"In bubble sort, after the first full pass over [5, 3, 8, 1], what does the list become?",o:["[1, 3, 5, 8]","[3, 5, 1, 8]","[3, 5, 8, 1]","[1, 5, 3, 8]"],a:1,e:"First pass: 5>3 swap→[3,5,8,1], 5<8 no swap, 8>1 swap→[3,5,1,8]. Largest (8) bubbles to end!"},
+{t:"BubbleSort",q:"What is the time complexity of bubble sort in the worst case?",o:["O(n)","O(n log n)","O(n²)","O(log n)"],a:2,e:"Bubble sort uses nested loops — n passes of n comparisons = O(n²). Very slow for large data."},
+{t:"BubbleSort",q:"What is missing to complete this bubble sort?\n\nfor i in range(len(arr)-1):\n    for j in range(_____):\n        if arr[j] > arr[j+1]:\n            arr[j],arr[j+1]=arr[j+1],arr[j]",o:["len(arr)","len(arr)-1","len(arr)-i-1","len(arr)+1"],a:2,e:"The inner loop runs len(arr)-i-1 times. The -i avoids re-checking already-sorted end elements."},
+{t:"IfConditional",q:"What is printed?\n\nx = 15\nif x > 10:\n    print('A')\nelif x > 5:\n    print('B')\nelse:\n    print('C')",o:["A","B","C","AB"],a:0,e:"x=15 satisfies the first condition (15>10), so 'A' is printed and the rest is skipped."},
+{t:"IfConditional",q:"What is the output?\n\nif 0:\n    print('yes')\nelse:\n    print('no')",o:["yes","no","0","Error"],a:1,e:"0 is falsy in Python, so the else branch executes. Only non-zero numbers are truthy."},
+{t:"IfConditional",q:"Which operator checks if a value is NOT in a list?",o:["!in","not in","!=","notin"],a:1,e:"'not in' is the correct Python operator for membership exclusion. Example: 5 not in [1,2,3]"},
+{t:"ForLoop",q:"What does this print?\n\nfor i in range(3):\n    print(i, end=' ')",o:["0 1 2 ","1 2 3 ","0 1 2 3 ","0 1"],a:0,e:"range(3) generates 0,1,2. end=' ' replaces the newline with a space."},
+{t:"ForLoop",q:"What is the output?\n\nfor i in range(2, 8, 2):\n    print(i, end=' ')",o:["2 4 6 8 ","2 4 6 ","0 2 4 6 ","2 4"],a:1,e:"range(2,8,2): start=2, stop=8, step=2 → 2, 4, 6. Stops before 8!"},
+{t:"ForLoop",q:"What does this output?\n\nwords = ['cat','dog','bat']\nfor w in words:\n    if w.startswith('b'):\n        break\n    print(w)",o:["cat dog bat","cat dog","cat","dog"],a:1,e:"'cat' and 'dog' print. When 'bat' is reached, break exits the loop before printing it."},
+{t:"ForLoop",q:"What is printed?\n\nfor i in range(5):\n    if i % 2 == 0:\n        continue\n    print(i, end=' ')",o:["0 2 4 ","1 3 ","1 2 3 4 ","0 1 2 3 4 "],a:1,e:"continue skips the rest of the loop body for even numbers. Only odd numbers (1, 3) are printed."},
+{t:"WhileLoop",q:"How many times does this loop execute?\n\nx = 1\nwhile x < 5:\n    x += 1",o:["5","4","3","infinite"],a:1,e:"x starts at 1, runs for x=1,2,3,4 (four iterations), then x becomes 5 and condition fails."},
+{t:"WhileLoop",q:"What is the output?\n\ni = 10\nwhile i > 0:\n    print(i, end=' ')\n    i -= 3",o:["10 7 4 1 ","10 7 4 ","10 7 4 1 -2 ","10 7"],a:0,e:"i = 10, 7, 4, 1 (all >0). Next i=-2 fails the condition. So 4 values printed."},
+{t:"WhileLoop",q:"Which of these would create an infinite loop?",o:["while True: break","while 1 == 1: pass","while False: print('hi')","for i in range(0): print(i)"],a:1,e:"'1==1' is always True and 'pass' does nothing — infinite loop! The others terminate."},
+{t:"Dictionary",q:"What is the output?\n\nd = {'a':1,'b':2,'c':3}\nprint(d['b'])",o:["1","2","3","Error"],a:1,e:"Dictionary lookup by key. d['b'] returns 2."},
+{t:"Dictionary",q:"Which method returns all keys of a dictionary?",o:[".items()",".values()",".keys()",".get()"],a:2,e:"dict.keys() returns a view of all keys. .values() for values, .items() for key-value pairs."},
+{t:"Dictionary",q:"What happens when you run?\n\nd = {'x': 10}\nprint(d['y'])",o:["None","0","KeyError","10"],a:2,e:"Accessing a missing key raises KeyError. Use d.get('y') to safely return None instead."},
+{t:"Dictionary",q:"What does this output?\n\nd = {'a':1,'b':2}\nd.update({'b':99,'c':3})\nprint(d)",o:["{'a':1,'b':2,'c':3}","{'a':1,'b':99,'c':3}","{'b':99,'c':3}","Error"],a:1,e:"update() modifies existing keys ('b' becomes 99) and adds new ones ('c' is added)."},
+{t:"Sets",q:"What is the output?\n\ns = {1, 2, 2, 3, 3, 3}\nprint(len(s))",o:["6","3","1","Error"],a:1,e:"Sets store only UNIQUE values. Duplicates removed → {1,2,3} → length 3."},
+{t:"Sets",q:"Which set operation returns elements in BOTH sets?",o:["union","difference","intersection","symmetric_difference"],a:2,e:"intersection returns elements common to both sets. Think of it as the overlap in a Venn diagram."},
+{t:"Sets",q:"What is the output?\n\na = {1,2,3}\nb = {3,4,5}\nprint(a | b)",o:["{1,2,3,4,5}","{3}","{1,2,4,5}","Error"],a:0,e:"| is the union operator — combines all unique elements from both sets."},
+{t:"Sets",q:"Which is TRUE about Python sets?",o:["Sets are ordered","Sets allow duplicates","Sets are mutable but unordered","Sets support indexing"],a:2,e:"Sets are mutable (add/remove OK), but unordered and don't support indexing. No s[0]!"},
+{t:"2DLists",q:"What is the output?\n\nmatrix = [[1,2,3],[4,5,6],[7,8,9]]\nprint(matrix[1][2])",o:["4","5","6","9"],a:2,e:"matrix[1] picks row [4,5,6]. [2] picks the 3rd element (index 2): 6."},
+{t:"2DLists",q:"How do you create a 3x3 zero matrix using list comprehension?",o:["[[0]*3 for i in range(3)]","[[0,0,0],[0,0,0],[0,0,0]]","Both A and B","[0]*9"],a:2,e:"Both create a valid 3×3 matrix. Option A is the Pythonic way; B is explicit but equivalent."},
+{t:"2DLists",q:"What is printed?\n\ngrid = [[1,2],[3,4],[5,6]]\nfor row in grid:\n    print(row[0], end=' ')",o:["1 2 3 4 5 6 ","1 3 5 ","2 4 6 ","1 2 "],a:1,e:"Each iteration takes one row. row[0] picks the first column element: 1, 3, 5."},
+{t:"2DLists",q:"What is the output?\n\na = [[1,2],[3,4]]\nb = a\nb[0][0] = 99\nprint(a[0][0])",o:["1","99","Error","None"],a:1,e:"b = a makes both point to the SAME object (no copy!). Modifying b also changes a."},
+{t:"Basics",q:"What is the output?\n\nprint('Hello' * 3)",o:["Hello Hello Hello","HelloHelloHello","Error","Hello3"],a:1,e:"String × int repeats the string. No spaces are added between repetitions."},
+{t:"Lists",q:"What does this output?\n\na = [3,1,4,1,5,9,2]\na.sort()\nprint(a[0], a[-1])",o:["3 2","1 9","3 9","9 1"],a:1,e:"After sort(): [1,1,2,3,4,5,9]. a[0]=1 (smallest), a[-1]=9 (largest)."},
+{t:"Operators",q:"What is the output?\n\nprint(3 == 3.0)",o:["False","True","Error","3.0"],a:1,e:"Python compares by value. 3 and 3.0 are numerically equal so this is True."},
+{t:"ForLoop",q:"What does enumerate do in this code?\n\nfor i, v in enumerate(['a','b','c']):\n    print(i, v)",o:["Prints only values","Prints only indexes","Prints index and value pairs","Causes an error"],a:2,e:"enumerate() returns (index, value) pairs. Output: 0 a, 1 b, 2 c."},
+{t:"Dictionary",q:"What is printed?\n\nfor k,v in {'p':1,'q':2}.items():\n    print(k,v, end='; ')",o:["p q","1 2","p 1; q 2; ","Error"],a:2,e:".items() returns key-value pairs as tuples. The loop unpacks each into k and v."},
+{t:"TypeCasting",q:"What is the output?\n\nprint(int(True), int(False))",o:["True False","Error","1 0","1.0 0.0"],a:2,e:"In Python, True maps to 1 and False maps to 0. bool is actually a subclass of int!"},
+{t:"Basics",q:"Which of these will cause a SyntaxError?",o:["x=5+3","if x>0 print(x)","y='hello'","z=[1,2,3]"],a:1,e:"The if statement is missing a colon (:). Correct: if x>0: print(x)"},
+];
+
+const TOPIC_COLORS = {
+  Basics:'#4da6ff', Variables:'#b06cff', Datatypes:'#ff9d4d', Operators:'#ffe066',
+  TypeCasting:'#ff6bb3', Input:'#00ffaa', Lists:'#66d9e8', Tuples:'#e599f7',
+  BubbleSort:'#ff9d4d', IfConditional:'#4da6ff', ForLoop:'#00ffaa', WhileLoop:'#b06cff',
+  Dictionary:'#ffe066', Sets:'#ff6bb3', '2DLists':'#66d9e8'
+};
+
+let current=0, score=0, answered=new Array(questions.length).fill(null), showingResult=false, streak=0;
+
+function highlightCode(code) {
+  return code
+    .replace(/\b(def|class|import|from|return|if|elif|else|for|while|in|not|and|or|True|False|None|break|continue|pass|lambda)\b/g,'<span style="color:#b06cff">$1</span>')
+    .replace(/\b(print|len|range|type|int|float|str|bool|list|dict|set|tuple|input|enumerate|sorted)\b/g,'<span style="color:#00ffaa">$1</span>')
+    .replace(/'[^']*'/g,'<span style="color:#ffe066">$&</span>')
+    .replace(/"[^"]*"/g,'<span style="color:#ffe066">$&</span>')
+    .replace(/\b(\d+\.?\d*)\b/g,'<span style="color:#ff9d4d">$1</span>');
+}
+
+function renderQuestion(){
+  if(showingResult){renderResult();return;}
+  const app=document.getElementById('app');
+  const q=questions[current];
+  const ans=answered[current];
+  const done=ans!==null;
+  const pct=Math.round((answered.filter(a=>a!==null).length/questions.length)*100);
+  const color = TOPIC_COLORS[q.t] || '#4da6ff';
+  const topicClass = 'topic-'+q.t;
+
+  let dotsHtml = questions.map((qq,i)=>{
+    let cls='dot';
+    if(i===current) cls+=' current';
+    else if(answered[i]!==null){
+      cls += answered[i]===questions[i].a ? ' answered' : ' wrong-dot';
+    }
+    return `<div class="${cls}" title="Q${i+1}: ${qq.t}" onclick="jumpTo(${i})"></div>`;
+  }).join('');
+
+  let html=`
+    <div class="header">
+      <div class="title-area">
+        <span class="title-icon">🐍</span>
+        <div class="title">Python Exam</div>
+      </div>
+      <div class="stats">
+        <span class="stat-badge">${current+1} / ${questions.length}</span>
+        <span class="stat-badge score-badge">✦ ${score} pts</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progress</span><span>${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="topic-dots">${dotsHtml}</div>
+    <div class="q-card" style="--topic-color:${color}">
+      <div class="q-meta">
+        <span class="topic-tag ${topicClass}">${q.t.replace(/([A-Z])/g,' $1').trim()}</span>
+        <span class="q-num">Q${current+1}</span>
+      </div>
+      <div class="q-text">`;
+
+  const parts = q.q.split('\n\n');
+  if(parts.length > 1){
+    html += parts[0] + `<pre><code>${highlightCode(parts.slice(1).join('\n\n'))}</code></pre>`;
+  } else {
+    html += q.q;
+  }
+
+  html += `</div><div class="options">`;
+
+  q.o.forEach((opt,i)=>{
+    let cls='opt';
+    if(done){
+      cls+=' locked';
+      if(i===q.a) cls+=' correct';
+      else if(i===ans && ans!==q.a) cls+=' wrong';
+    }
+    const label=String.fromCharCode(65+i);
+    html+=`<div class="${cls}" onclick="choose(${i})">
+      <span class="opt-label">${label}</span>
+      <span>${opt}</span>
+    </div>`;
+  });
+
+  html+=`</div>`;
+  if(done){
+    const icon = ans===q.a ? '💡' : '📖';
+    html+=`<div class="explanation"><span class="exp-icon">${icon}</span><span>${q.e}</span></div>`;
+  }
+  html+=`</div>
+    <div class="controls">
+      <button class="btn" onclick="nav(-1)" ${current===0?'disabled':''}>&larr; Prev</button>
+      <div class="nav-info">${answered.filter(a=>a!==null).length} of ${questions.length} answered</div>`;
+
+  if(current<questions.length-1){
+    html+=`<button class="btn primary" onclick="nav(1)">Next &rarr;</button>`;
+  } else {
+    html+=`<button class="btn success" onclick="finish()">Finish ✓</button>`;
+  }
+  html+=`</div>`;
+  app.innerHTML=html;
+}
+
+function jumpTo(i){ current=i; renderQuestion(); }
+
+function choose(i){
+  if(answered[current]!==null) return;
+  answered[current]=i;
+  const correct = i===questions[current].a;
+  if(correct){
+    score++;
+    streak++;
+    if(streak>=3) showStreak(streak);
+  } else {
+    streak=0;
+  }
+  renderQuestion();
+  if(correct && current<questions.length-1){
+    setTimeout(()=>{ current++; renderQuestion(); }, 900);
+  }
+}
+
+function showStreak(n){
+  const el = document.getElementById('streakBadge');
+  const msgs = {3:'🔥 3 in a row!', 5:'⚡ 5 streak!', 7:'💥 On fire! ×7', 10:'🌟 LEGENDARY ×10'};
+  const msg = msgs[n] || (n%5===0 ? `🚀 ${n} streak!` : null);
+  if(!msg) return;
+  el.textContent = msg;
+  el.style.transform='translate(-50%,-50%) scale(1)';
+  el.style.opacity='1';
+  setTimeout(()=>{
+    el.style.transform='translate(-50%,-50%) scale(0)';
+    el.style.opacity='0';
+  }, 1400);
+}
+
+function nav(d){
+  current=Math.max(0,Math.min(questions.length-1,current+d));
+  renderQuestion();
+}
+
+function finish(){ showingResult=true; renderResult(); confetti(); }
+
+function confetti(){
+  const colors=['#4da6ff','#b06cff','#00ffaa','#ff9d4d','#ffe066','#ff6bb3'];
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>0.5?'50%':'2px'};animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*0.8}s;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 4000);
+  }
+}
+
+function renderResult(){
+  const app=document.getElementById('app');
+  const total=questions.length;
+  const pct=Math.round((score/total)*100);
+  const wrong=answered.filter((a,i)=>a!==null&&a!==questions[i].a).length;
+  const skipped=answered.filter(a=>a===null).length;
+
+  let grade, gradeColor, msg;
+  if(pct>=90){grade='A+';gradeColor='#00ffaa';msg='Outstanding! You\'ve mastered Python fundamentals!';}
+  else if(pct>=80){grade='A';gradeColor='#4da6ff';msg='Excellent! Strong understanding across all topics.';}
+  else if(pct>=70){grade='B';gradeColor='#b06cff';msg='Good work! A few areas to revisit and you\'ll be solid.';}
+  else if(pct>=60){grade='C';gradeColor='#ffe066';msg='Decent effort! Review the highlighted topics and try again.';}
+  else if(pct>=40){grade='D';gradeColor='#ff9d4d';msg='Keep practising — revisit the concepts and retry!';}
+  else{grade='F';gradeColor='#ff4d6d';msg='Don\'t give up! Study the fundamentals and come back stronger.';}
+
+  const circumference = 2*Math.PI*66;
+  const offset = circumference - (pct/100)*circumference;
+
+  let html=`<div class="result-screen">
+    <div class="result-hero">
+      <div class="result-circle">
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <circle class="ring-bg" cx="80" cy="80" r="66"/>
+          <circle class="ring-fg" cx="80" cy="80" r="66"
+            style="stroke:${gradeColor};stroke-dasharray:${circumference};stroke-dashoffset:${offset}"/>
+        </svg>
+        <div>
+          <div class="result-pct" style="color:${gradeColor}">${pct}%</div>
+        </div>
+      </div>
+      <div class="result-label" style="color:${gradeColor}">Grade: ${grade}</div>
+      <div class="result-msg">${msg}</div>
+    </div>
+    <div class="result-grid">
+      <div class="result-card"><div class="result-num" style="color:#00ffaa">${score}</div><div class="result-lbl">Correct</div></div>
+      <div class="result-card"><div class="result-num" style="color:#ff4d6d">${wrong}</div><div class="result-lbl">Wrong</div></div>
+      <div class="result-card"><div class="result-num" style="color:#ffe066">${skipped}</div><div class="result-lbl">Skipped</div></div>
+      <div class="result-card"><div class="result-num" style="color:#4da6ff">${score*2}/100</div><div class="result-lbl">Marks</div></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn" onclick="reviewAll()">📋 Review Answers</button>
+      <button class="btn primary" onclick="restart()">🔄 Restart Exam</button>
+    </div>
+  </div>`;
+  app.innerHTML=html;
+}
+
+function reviewAll(){ showingResult=false; current=0; renderQuestion(); }
+
+function restart(){
+  current=0; score=0; streak=0; showingResult=false;
+  answered=new Array(questions.length).fill(null);
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
